@@ -1,0 +1,9 @@
+{
+  "name": "pixel-sort-engine",
+  "private": true,
+  "description": "Pixel Sort prototype: engine, level generator, web build and clip renderer",
+  "dependencies": {
+    "@fontsource/fredoka": "^5.3.0",
+    "@fontsource/lilita-one": "^5.3.0"
+  }
+}

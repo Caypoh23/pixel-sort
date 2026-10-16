@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pixel Sort · Privacy</title>
+<meta name="theme-color" content="#0E2F45">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<style>
+:root { --ink: #0E2F45; --fg: #F2FAFF; --muted: rgba(232,246,255,.74); --gold: #FFC83D; color-scheme: dark; }
+body { margin: 0; background: var(--ink); color: var(--fg); font: 17px/1.6 ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif; padding: 48px max(20px, env(safe-area-inset-left, 0px)) 64px max(20px, env(safe-area-inset-right, 0px)); }
+main { max-width: 640px; margin: 0 auto; }
+h1 { font-size: 34px; line-height: 1.2; margin: 0 0 8px; text-wrap: balance; }
+h2 { font-size: 20px; margin: 32px 0 6px; }
+p, li { color: var(--muted); }
+a { color: var(--gold); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Pixel Sort privacy note</h1>
+  <p>Pixel Sort is an early prototype of a puzzle game. This page explains what the web version collects.</p>
+
+  <h2>What we collect</h2>
+  <ul>
+    <li>Anonymous gameplay events: which level you play, when you finish it, how many moves it took, and whether you used undo or an extra tube.</li>
+    <li>Your answer if you reply to the question about installing the full game.</li>
+    <li>Technical data your browser sends with every request: device type, browser, approximate country, the page that sent you here and campaign tags in the link.</li>
+  </ul>
+  <p>We do not ask for your name, email or phone number, and the game has no accounts.</p>
+
+  <h2>Tools we use</h2>
+  <ul>
+    <li><strong>PostHog</strong> stores the gameplay events so we can see where players get stuck. It keeps a random ID in your browser storage.</li>
+    <li><strong>Meta Pixel</strong> may be used to measure our ads on Facebook and Instagram. It can set a cookie and is covered by Meta's own privacy policy.</li>
+  </ul>
+  <p>Your game progress (finished pictures, sound setting) is saved only in your own browser.</p>
+
+  <h2>Your choices</h2>
+  <p>You can block cookies and tracking in your browser settings or with a content blocker; the game keeps working. Clearing your browser data removes the saved progress and the random ID.</p>
+
+  <p><a href="./">Back to the game</a></p>
+</main>
+</body>
+</html>

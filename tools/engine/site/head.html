@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pixel Sort · free color sort puzzle</title>
+<meta name="description" content="Sort the colored balls and a hidden pixel picture appears. Free to play in your browser, no download.">
+<meta name="theme-color" content="#0E2F45">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Pixel Sort">
+<meta property="og:description" content="Sort the colors, reveal the picture. Free to play in your browser.">
+<meta property="og:image" content="__SITE_URL__og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="__SITE_URL__">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Pixel Sort">
+<meta name="twitter:description" content="Sort the colors, reveal the picture. Free to play in your browser.">
+<meta name="twitter:image" content="__SITE_URL__og.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pixel Sort">
+<script src="config.js"></script>
+<style>
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+[hidden] { display: none !important; }
+/*@@SHELL_CSS@@*/
+#footer {
+  position: absolute; left: 0; right: 0; top: calc(1856px * var(--u)); text-align: center;
+  font-size: calc(26px * var(--u)); color: var(--muted); letter-spacing: 0.02em;
+}
+#footer a { color: inherit; text-underline-offset: 0.2em; }
+.answers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: calc(18px * var(--u)); }
+.answers .cta, .answers .ghost { padding-inline: 0; text-align: center; }
+.answers .cta { font-size: calc(48px * var(--u)); }
+.follow { display: flex; flex-wrap: wrap; gap: calc(16px * var(--u)); justify-content: center; margin-top: calc(8px * var(--u)); }
+.follow a {
+  color: var(--fg); text-decoration: none; font-weight: 600; font-size: calc(34px * var(--u));
+  padding: calc(16px * var(--u)) calc(28px * var(--u)); border-radius: 999px; background: var(--chip);
+}
+.follow a:focus-visible { outline: calc(7px * var(--u)) solid var(--gold); outline-offset: calc(4px * var(--u)); }
+</style>
+</head>
+<body>

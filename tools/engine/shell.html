@@ -1,0 +1,283 @@
+<title>Pixel Sort</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/*@@FONTS@@*/
+/* Layout: one 9:16 game stage centred in the viewport; the HUD sits in the stage's top and bottom bands, panels float over the tube area */
+:root {
+  --ink-top: #15445E;
+  --ink: #0E2F45;
+  --ink-deep: #091E2E;
+  --gold: #FFC83D;
+  --gold-deep: #E59100;
+  --brown: #5C3406;
+  --fg: #F2FAFF;
+  --muted: rgba(232, 246, 255, 0.72);
+  --chip: rgba(255, 255, 255, 0.12);
+  --chip-hover: rgba(255, 255, 255, 0.2);
+  --panel: #0B2638;
+  --tile: #ECE9F3;
+  --font-display: 'Lilita One', Fredoka, 'Arial Rounded MT Bold', system-ui, sans-serif;
+  --font-ui: Fredoka, ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif;
+  color-scheme: dark;
+}
+html { height: 100%; box-sizing: border-box; background: var(--ink-deep); }
+body {
+  height: 100%; margin: 0; box-sizing: border-box; overflow: hidden;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: linear-gradient(180deg, var(--ink-top) 0%, var(--ink) 55%, var(--ink-deep) 100%);
+  color: var(--fg); font-family: var(--font-ui);
+  -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+}
+#app { height: 100%; display: grid; place-items: center; }
+#stage { position: relative; width: 360px; height: 640px; --u: 0.3333; }
+#game { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; padding: 0; }
+button:focus-visible { outline: calc(7px * var(--u)) solid var(--gold); outline-offset: calc(5px * var(--u)); }
+.hud { position: absolute; left: 0; right: 0; display: flex; align-items: center; pointer-events: none; }
+.hud > * { pointer-events: auto; }
+.hud.top { top: calc(76px * var(--u)); height: calc(112px * var(--u)); justify-content: space-between; padding: 0 calc(44px * var(--u)); }
+.hud.bottom { top: calc(1668px * var(--u)); height: calc(156px * var(--u)); justify-content: center; gap: calc(24px * var(--u)); }
+.icon {
+  width: calc(112px * var(--u)); height: calc(112px * var(--u)); border-radius: calc(34px * var(--u));
+  background: var(--chip); display: grid; place-items: center; transition: background .15s;
+}
+.icon:hover, .act:hover:not(:disabled) { background: var(--chip-hover); }
+.icon svg { width: 50%; height: 50%; }
+.act {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: calc(8px * var(--u)); width: calc(196px * var(--u)); height: calc(156px * var(--u));
+  border-radius: calc(38px * var(--u)); background: var(--chip); transition: background .15s, opacity .15s;
+  font-weight: 600; font-size: calc(38px * var(--u)); letter-spacing: 0.01em;
+}
+.act svg { width: calc(56px * var(--u)); height: calc(56px * var(--u)); }
+.act:disabled { opacity: 0.38; cursor: default; }
+.tag {
+  position: absolute; top: calc(-16px * var(--u)); right: calc(-10px * var(--u));
+  background: var(--gold); color: var(--brown); font-weight: 700; font-size: calc(24px * var(--u));
+  padding: calc(4px * var(--u)) calc(14px * var(--u)); border-radius: 999px; letter-spacing: 0.04em;
+}
+svg { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.band { position: absolute; left: 0; right: 0; top: calc(1650px * var(--u)); height: calc(190px * var(--u)); display: flex; align-items: center; justify-content: center; gap: calc(26px * var(--u)); }
+.cta {
+  font-family: var(--font-display); font-size: calc(60px * var(--u)); color: var(--brown);
+  padding: calc(28px * var(--u)) calc(74px * var(--u)); border-radius: calc(44px * var(--u));
+  background: linear-gradient(180deg, #FFE27A, var(--gold) 55%, #F2A400);
+  box-shadow: 0 calc(10px * var(--u)) 0 var(--gold-deep), 0 calc(20px * var(--u)) calc(34px * var(--u)) rgba(0, 0, 0, 0.35);
+}
+.cta:active { transform: translateY(calc(6px * var(--u))); box-shadow: 0 calc(4px * var(--u)) 0 var(--gold-deep); }
+.ghost { font-weight: 600; font-size: calc(36px * var(--u)); padding: calc(24px * var(--u)) calc(40px * var(--u)); border-radius: calc(40px * var(--u)); background: var(--chip); }
+.card {
+  position: absolute; left: calc(130px * var(--u)); right: calc(130px * var(--u)); top: calc(1180px * var(--u));
+  background: var(--panel); border: calc(4px * var(--u)) solid rgba(255, 255, 255, 0.12);
+  border-radius: calc(48px * var(--u)); padding: calc(44px * var(--u)); text-align: center;
+  box-shadow: 0 calc(30px * var(--u)) calc(60px * var(--u)) rgba(0, 0, 0, 0.45);
+}
+.card h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: calc(70px * var(--u)); letter-spacing: 0.01em; }
+.card p { margin: calc(12px * var(--u)) 0 calc(32px * var(--u)); color: var(--muted); font-size: calc(40px * var(--u)); line-height: 1.35; }
+.card .row { display: flex; gap: calc(20px * var(--u)); justify-content: center; flex-wrap: wrap; }
+.sheet { position: absolute; inset: 0; overflow-y: auto; background: rgba(6, 22, 34, 0.96); display: flex; flex-direction: column; padding: calc(90px * var(--u)) calc(60px * var(--u)); gap: calc(44px * var(--u)); }
+.sheet header { display: flex; align-items: center; justify-content: space-between; }
+.sheet h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: calc(84px * var(--u)); }
+.sheet .count { color: var(--muted); font-size: calc(40px * var(--u)); margin-top: calc(6px * var(--u)); }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: calc(44px * var(--u)) calc(32px * var(--u)); }
+.pic { display: flex; flex-direction: column; gap: calc(16px * var(--u)); align-items: center; font-weight: 600; font-size: calc(36px * var(--u)); }
+.pic canvas, .pic .unknown { width: 100%; aspect-ratio: 1; max-width: 100%; border-radius: calc(26px * var(--u)); display: block; image-rendering: pixelated; background: #FFFFFF; box-sizing: border-box; border: calc(12px * var(--u)) solid #FFFFFF; }
+.pic .unknown { display: grid; place-items: center; background: var(--tile); color: #BDB4CF; font-family: var(--font-display); font-size: calc(120px * var(--u)); }
+.pic span { color: var(--muted); }
+.pic.done span { color: var(--fg); }
+.note { color: var(--muted); font-size: calc(36px * var(--u)); line-height: 1.4; margin: 0; }
+#toast {
+  position: absolute; left: 50%; top: calc(250px * var(--u)); transform: translateX(-50%);
+  width: max-content; max-width: 86%; background: #FFFFFF; color: #111418; text-align: center;
+  font-weight: 600; font-size: calc(40px * var(--u)); line-height: 1.3;
+  padding: calc(20px * var(--u)) calc(36px * var(--u)); border-radius: calc(30px * var(--u));
+  box-shadow: 0 calc(16px * var(--u)) calc(40px * var(--u)) rgba(0, 0, 0, 0.35);
+}
+@media (prefers-reduced-motion: reduce) { .icon, .act { transition: none; } }
+</style>
+
+<div id="app">
+  <div id="stage">
+    <canvas id="game" width="1080" height="1920" role="application" aria-label="Pixel Sort board. Number keys 1 to 8 pick tubes, Z undoes, R restarts."></canvas>
+
+    <div class="hud top">
+      <button id="btn-album" class="icon" aria-label="Open album" title="Album">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.5-3.5a2 2 0 0 0-2.8 0L6 21"/></svg>
+      </button>
+      <button id="btn-sound" class="icon" aria-label="Mute sound" title="Sound">
+        <svg viewBox="0 0 24 24" id="ico-sound"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18.5 6a8 8 0 0 1 0 12"/></svg>
+      </button>
+    </div>
+
+    <div class="hud bottom" id="hud-bottom">
+      <button id="btn-undo" class="act" aria-label="Undo last move">
+        <svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>Undo
+      </button>
+      <button id="btn-restart" class="act" aria-label="Restart level">
+        <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Restart
+      </button>
+      <button id="btn-tube" class="act" aria-label="Add one empty tube">
+        <svg viewBox="0 0 24 24"><path d="M14 3v15.5a2.5 2.5 0 0 1-5 0V3"/><path d="M7.5 3h8"/><path d="M19 8v6M16 11h6"/></svg>+1 tube<span class="tag">AD</span>
+      </button>
+      <button id="btn-solve" class="act" aria-label="Watch the solution">
+        <svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>Watch
+      </button>
+    </div>
+
+    <div class="band" id="win" hidden>
+      <button id="btn-next" class="cta">Next picture</button>
+      <button id="btn-album2" class="ghost">Album</button>
+    </div>
+
+    <div class="card" id="stuck" hidden role="dialog" aria-labelledby="stuck-title">
+      <h2 id="stuck-title">No moves left</h2>
+      <p>Undo a move, or add an empty tube. In the full game the tube costs a short ad or coins.</p>
+      <div class="row">
+        <button id="stuck-tube" class="cta">+1 tube</button>
+        <button id="stuck-undo" class="ghost">Undo</button>
+        <button id="stuck-restart" class="ghost">Restart</button>
+      </div>
+    </div>
+
+    <div class="sheet" id="album" hidden role="dialog" aria-labelledby="album-title">
+      <header>
+        <div><h2 id="album-title">Album</h2><div class="count" id="album-count"></div></div>
+        <button id="album-close" class="icon" aria-label="Close album">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+      <div class="grid" id="album-grid"></div>
+      <p class="note">Each solved level adds its picture here. In the full game, albums come in themed sets.</p>
+    </div>
+
+    <div id="toast" hidden role="status"></div>
+  </div>
+</div>
+
+<script>window.PS_DATA = /*@@DATA@@*/;</script>
+<script>/*@@GAME@@*/</script>
+<script>
+(function () {
+  'use strict';
+  if (window.PS_VIDEO) return;
+  const $ = (id) => document.getElementById(id);
+  const stage = $('stage'), cv = $('game');
+  const KEY = 'pixelsort.v1';
+  const store = {
+    read() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } },
+    write(v) { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } },
+  };
+  const saved = store.read();
+  const prog = { level: saved.level || 0, solved: Array.isArray(saved.solved) ? saved.solved : [], sound: saved.sound !== false };
+
+  function fit() {
+    const r = $('app').getBoundingClientRect();
+    const s = Math.max(0.05, Math.min(r.width / 1080, r.height / 1920));
+    stage.style.width = 1080 * s + 'px';
+    stage.style.height = 1920 * s + 'px';
+    stage.style.setProperty('--u', s);
+  }
+  addEventListener('resize', fit);
+  fit();
+
+  let toastTimer = 0;
+  function toast(msg) {
+    const el = $('toast'); el.textContent = msg; el.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
+  }
+  function save() { store.write({ level: PS.state ? PS.state.idx : prog.level, solved: prog.solved, sound: prog.sound }); }
+
+  function setSound(on) {
+    prog.sound = on; PS.Sound.on = on;
+    $('btn-sound').setAttribute('aria-label', on ? 'Mute sound' : 'Turn sound on');
+    $('ico-sound').innerHTML = on
+      ? '<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18.5 6a8 8 0 0 1 0 12"/>'
+      : '<path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 6 6M22 9l-6 6"/>';
+    save();
+  }
+
+  function sync(evt) {
+    const G = PS.state; if (!G) return;
+    const won = G.winT < Infinity;
+    $('btn-undo').disabled = PS.play.demoing || won || !G.history.length;
+    $('btn-tube').disabled = PS.play.demoing || won || G.extra;
+    $('btn-solve').disabled = PS.play.demoing || won;
+    if (evt === 'stuck' && !won) $('stuck').hidden = false;
+    if (evt === 'win') {
+      const id = PS.levels[G.idx].id;
+      if (!G.byDemo && !prog.solved.includes(id)) prog.solved.push(id);
+      const last = G.idx === PS.levels.length - 1;
+      $('btn-next').textContent = last ? 'Play again' : 'Next picture';
+      $('hud-bottom').hidden = true; $('win').hidden = false;
+      save();
+      $('btn-next').focus({ preventScroll: true });
+    }
+    if (!won) { $('win').hidden = true; $('hud-bottom').hidden = false; }
+  }
+
+  function closePanels() { $('stuck').hidden = true; }
+  function goLevel(i) { closePanels(); PS.play.level(i); save(); }
+
+  cv.addEventListener('pointerdown', (e) => {
+    if (!$('album').hidden) return;
+    const r = cv.getBoundingClientRect();
+    closePanels();
+    PS.play.tapAt(((e.clientX - r.left) * 1080) / r.width, ((e.clientY - r.top) * 1920) / r.height);
+  });
+  addEventListener('keydown', (e) => {
+    if (e.target && e.target.tagName === 'BUTTON' && (e.key === 'Enter' || e.key === ' ')) return;
+    if (!$('album').hidden) { if (e.key === 'Escape') closeAlbum(); return; }
+    if (/^[1-9]$/.test(e.key)) { closePanels(); PS.play.tapTube(+e.key - 1); }
+    else if (e.key === 'z' || e.key === 'Z' || e.key === 'Backspace') { closePanels(); PS.play.undo(); }
+    else if (e.key === 'r' || e.key === 'R') { closePanels(); PS.play.restart(); }
+  });
+
+  $('btn-undo').onclick = () => { closePanels(); PS.play.undo(); };
+  $('btn-restart').onclick = () => { closePanels(); PS.play.restart(); };
+  $('btn-tube').onclick = () => { closePanels(); if (PS.play.addTube()) toast('Free here. In the real game: an ad or coins.'); };
+  $('btn-solve').onclick = () => { closePanels(); PS.play.demo(); toast('Watching the solution. Restart to play.'); };
+  $('stuck-tube').onclick = () => { closePanels(); if (PS.play.addTube()) toast('Free here. In the real game: an ad or coins.'); };
+  $('stuck-undo').onclick = () => { closePanels(); PS.play.undo(); };
+  $('stuck-restart').onclick = () => { closePanels(); PS.play.restart(); };
+  $('btn-next').onclick = () => { const G = PS.state; goLevel((G.idx + 1) % PS.levels.length); };
+  $('btn-sound').onclick = () => { PS.Sound.ensure(); setSound(!prog.sound); };
+
+  function openAlbum() {
+    const grid = $('album-grid'); grid.innerHTML = '';
+    PS.levels.forEach((L, i) => {
+      const done = prog.solved.includes(L.id);
+      const btn = document.createElement('button');
+      btn.className = 'pic' + (done ? ' done' : '');
+      btn.setAttribute('aria-label', done ? `${L.name}, level ${i + 1}, play again` : `Level ${i + 1}, not solved yet`);
+      if (done) btn.appendChild(PS.play.thumb(i));
+      else { const u = document.createElement('div'); u.className = 'unknown'; u.textContent = '?'; btn.appendChild(u); }
+      const cap = document.createElement('span'); cap.textContent = done ? L.name.charAt(0) + L.name.slice(1).toLowerCase() : `Level ${i + 1}`;
+      btn.appendChild(cap);
+      btn.onclick = () => { closeAlbum(); goLevel(i); };
+      grid.appendChild(btn);
+    });
+    $('album-count').textContent = `${prog.solved.length} of ${PS.levels.length} pictures`;
+    $('album').hidden = false;
+    $('album-close').focus({ preventScroll: true });
+  }
+  function closeAlbum() { $('album').hidden = true; $('btn-album').focus({ preventScroll: true }); }
+  $('btn-album').onclick = openAlbum;
+  $('btn-album2').onclick = openAlbum;
+  $('album-close').onclick = closeAlbum;
+
+  async function start(data) {
+    data = data || {};
+    PS.Sound.on = prog.sound;
+    await PS.init(cv, { level: Number.isInteger(data.level) ? data.level : prog.level, history: data.history, extra: data.extra });
+    setSound(prog.sound);
+    PS.play.onState = sync;
+    sync();
+  }
+  if (window.claude && window.claude.hot && window.claude.hot.snapshot) {
+    window.claude.hot.snapshot(() => { const G = PS.state; return G ? { level: G.idx, history: G.history.slice(), extra: G.extra } : {}; });
+  }
+  if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(start);
+  else start((window.claude && window.claude.hot && window.claude.hot.data) || {});
+})();
+</script>
