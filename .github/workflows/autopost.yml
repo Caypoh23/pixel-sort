@@ -1,0 +1,38 @@
+name: Autopost clips
+
+# Every 6 hours: queue the clips that are due in the next 30 hours on the Buffer channels.
+# Needs the BUFFER_API_KEY repository secret and start_date in content/schedule.json.
+on:
+  schedule:
+    - cron: "7 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: repo-writes
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Queue due posts in Buffer
+        env:
+          BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+        run: python3 scripts/autopost.py
+      - name: Save posting state
+        run: |
+          if [ -n "$(git status --porcelain content/posted.json)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add content/posted.json
+            git commit -m "Record queued posts"
+            git pull --rebase
+            git push
+          fi
